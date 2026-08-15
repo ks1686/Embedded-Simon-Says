@@ -1,24 +1,19 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
 
 entity pulse_detector_tb is
 end pulse_detector_tb;
 
 architecture tb_arch of pulse_detector_tb is
+  constant clk_period : time := 8 ns;
 
-  -- constants
-  constant clk_period : time := 8 ns; -- 125 MHz
-
-  -- signals
-  signal clk, rst, in_pulse, out_pulse : std_logic                    := '0';
+  signal clk, rst, in_pulse, out_pulse : std_logic := '0';
   signal detect_type                   : std_logic_vector(1 downto 0) := "00";
-
+  signal done                          : boolean := false;
 begin
+  clk <= not clk after clk_period / 2 when not done else '0';
 
-  -- instantiate the unit under test 
-  UUT : entity work.pulse_detector
+  uut : entity work.pulse_detector
     port map
     (
       clk         => clk,
@@ -28,39 +23,63 @@ begin
       out_pulse   => out_pulse
     );
 
-  -- clock process
-  clk_process : process
+  stim : process
+    variable seen : integer;
+    procedure wait_clks(n : natural) is
+    begin
+      for i in 1 to n loop
+        wait until rising_edge(clk);
+      end loop;
+    end procedure;
   begin
-    clk <= '0'; -- initial clk value
-    wait for clk_period / 2; -- half period
-    clk <= '1'; -- toggle clk
-    wait for clk_period / 2; -- half period
-  end process;
+    rst <= '1';
+    wait_clks(3);
+    rst <= '0';
+    wait_clks(3);
+    assert out_pulse = '0' report "idle must be 0" severity failure;
 
-  -- stimulus process
-  stim_proc : process
-  begin
-    -- test case 1: no pulse
-    in_pulse <= '0'; -- initial in_pulse value
-    wait for 50 ns; -- wait for 50 ns
+    detect_type <= "00";
+    in_pulse    <= '1';
+    seen        := 0;
+    for i in 1 to 8 loop
+      wait until rising_edge(clk);
+      if out_pulse = '1' then
+        seen := seen + 1;
+      end if;
+    end loop;
+    assert seen = 1 report "rising edge must pulse once" severity failure;
 
-    -- test case 2: rising edge pulse
-    in_pulse <= '1'; -- set in_pulse to '1'
-    wait for 8 ns; -- wait for 8 ns
-    in_pulse <= '0'; -- set in_pulse to '0'
-    wait for 50 ns; -- wait for 50 ns
+    detect_type <= "01";
+    in_pulse    <= '0';
+    seen        := 0;
+    for i in 1 to 8 loop
+      wait until rising_edge(clk);
+      if out_pulse = '1' then
+        seen := seen + 1;
+      end if;
+    end loop;
+    assert seen = 1 report "falling edge must pulse once" severity failure;
 
-    -- test case 3: falling edge pulse
-    in_pulse <= '0'; -- set in_pulse to '0'
-    wait for 8 ns; -- wait for 8 ns
-    in_pulse <= '1'; -- set in_pulse to '1'
-    wait for 8 ns; -- wait for 8 ns
-    in_pulse <= '0'; -- set in_pulse to '0'
-    wait for 50 ns; -- wait for 50 ns
+    detect_type <= "10";
+    in_pulse    <= '1';
+    seen        := 0;
+    for i in 1 to 6 loop
+      wait until rising_edge(clk);
+      if out_pulse = '1' then
+        seen := seen + 1;
+      end if;
+    end loop;
+    in_pulse <= '0';
+    for i in 1 to 6 loop
+      wait until rising_edge(clk);
+      if out_pulse = '1' then
+        seen := seen + 1;
+      end if;
+    end loop;
+    assert seen = 2 report "either-edge must pulse on rise and fall" severity failure;
 
-    -- test case 4: level pulse 
-    in_pulse <= '1'; -- set in_pulse to '1'
-    wait for 50 ns; -- wait for 50 ns
-
+    report "pulse_detector_tb passed" severity note;
+    done <= true;
+    wait;
   end process;
 end architecture;

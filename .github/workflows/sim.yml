@@ -1,0 +1,34 @@
+name: sim
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sim-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nvc:
+    name: nvc testbenches
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup nvc
+        uses: nickg/setup-nvc@48f966dfc9b27bf13e873a473fcf1649ef8f5a0f # v1
+        with:
+          version: "1.22.1"
+
+      - name: Show nvc version
+        run: nvc --version
+
+      - name: Run assertion testbenches
+        run: bash scripts/sim.sh

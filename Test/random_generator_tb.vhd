@@ -1,65 +1,51 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
 
 entity random_generator_tb is
 end random_generator_tb;
 
 architecture rtl of random_generator_tb is
+  constant clk_period : time := 8 ns;
 
-  -- component under test
-  component random_generator is
-    generic
-    (
-      input_width  : integer := 8;
-      output_width : integer := 4
-    );
-    port
-    (
-      clk, rst : in std_logic;
-      seed     : in std_logic_vector(input_width - 1 downto 0);
-      rand_out : out std_logic_vector(output_width - 1 downto 0)
-    );
-  end component;
-
-  -- signal declaration
-  signal clk, rst : std_logic                    := '0';
-  signal seed     : std_logic_vector(7 downto 0) := (others => '0');
+  signal clk      : std_logic := '0';
+  signal rst      : std_logic := '0';
+  signal seed     : std_logic_vector(7 downto 0) := "10101010";
   signal rand_out : std_logic_vector(3 downto 0);
-
+  signal done     : boolean := false;
 begin
+  clk <= not clk after clk_period / 2 when not done else '0';
 
-  -- component instantiation
-  uut : random_generator
-  generic
-  map
-  (
-  input_width  => 8, -- input width
-  output_width => 4 -- output width
-  )
-  port map
-  (
-    clk      => clk,
-    rst      => rst,
-    seed     => seed,
-    rand_out => rand_out
-  );
+  uut : entity work.random_generator
+    generic map (input_width => 8, output_width => 4)
+    port map (clk => clk, rst => rst, seed => seed, rand_out => rand_out);
 
-  -- clock generation
-  clk <= not clk after 4 ns;
-
-  -- stimulus process
-  stim_proc : process
+  stim : process
+    variable seen : std_logic_vector(3 downto 0) := (others => '0');
   begin
-    rst  <= '1'; -- reset
-    seed <= "10101010"; -- seed
-    wait for 8 ns; -- wait for 8 ns
-    rst <= '0'; -- release resets
-    wait for 100 ns; -- wait for 100 nss
-    seed <= "01010101"; -- seed
-    wait for 100 ns; -- wait for 100 ns
+    rst <= '1';
+    wait until rising_edge(clk);
+    wait until rising_edge(clk);
+    rst <= '0';
+
+    for i in 1 to 64 loop
+      wait until rising_edge(clk);
+      assert rand_out = "0001" or rand_out = "0010" or rand_out = "0100" or rand_out = "1000"
+        report "rand_out must be one-hot" severity failure;
+      if rand_out = "0001" then
+        seen(0) := '1';
+      elsif rand_out = "0010" then
+        seen(1) := '1';
+      elsif rand_out = "0100" then
+        seen(2) := '1';
+      else
+        seen(3) := '1';
+      end if;
+    end loop;
+
+    assert seen = "1111" report "all four colors must appear" severity failure;
+
+    report "random_generator_tb passed" severity note;
+    done <= true;
     wait;
   end process;
-
 end architecture;
