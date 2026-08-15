@@ -1,33 +1,46 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
 
 entity top_level is
+  generic
+  (
+    clk_freq       : integer := 125000000;
+    debounce_ticks : integer := 2500000;
+    max_pattern    : integer := 15
+  );
   port
   (
     clk                : in std_logic;
-    p_btn              : in std_logic_vector(3 downto 0); -- 4 PMOD buttons
-    start_btn, rst_btn : in std_logic; -- start/reset button
-    dispSeg            : out std_logic_vector(7 downto 0) := (others => '0')
+    p_btn              : in std_logic_vector(3 downto 0);
+    start_btn, rst_btn : in std_logic;
+    dispSeg            : out std_logic_vector(7 downto 0)
   );
 end entity top_level;
-architecture rtl of top_level is
 
-  -- * Component Declarations * --
+architecture rtl of top_level is
   component simon_game is
+    generic
+    (
+      clk_freq       : integer := 125000000;
+      debounce_ticks : integer := 2500000;
+      max_pattern    : integer := 15
+    );
     port
     (
       clk                : in std_logic;
-      p_btn              : in std_logic_vector(3 downto 0); -- 4 PMOD buttons
-      start_btn, rst_btn : in std_logic; -- start/reset button
-      dispSeg            : out std_logic_vector(7 downto 0) := (others => '0')
+      p_btn              : in std_logic_vector(3 downto 0);
+      start_btn, rst_btn : in std_logic;
+      dispSeg            : out std_logic_vector(7 downto 0)
     );
   end component simon_game;
-
 begin
-  -- * Component Instantiations * --
   simon_game_inst : simon_game
+  generic map
+  (
+    clk_freq       => clk_freq,
+    debounce_ticks => debounce_ticks,
+    max_pattern    => max_pattern
+  )
   port map
   (
     clk       => clk,
@@ -36,5 +49,4 @@ begin
     rst_btn   => rst_btn,
     dispSeg   => dispSeg
   );
-
 end architecture;

@@ -1,36 +1,45 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.numeric_std.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity debounce is
+  generic
+  (
+    stable_ticks : integer := 2500000 -- 20 ms at 125 MHz
+  );
   port
   (
-    signal clk  : in std_logic;
-    signal btn  : in std_logic;
-    signal dbnc : out std_logic);
+    clk  : in std_logic;
+    btn  : in std_logic;
+    dbnc : out std_logic
+  );
 end debounce;
 
-architecture Behavioral of debounce is
-  signal shift_register : std_logic_vector(1 downto 0)  := (others => '0');
-  signal counter        : std_logic_vector(21 downto 0) := (others => '0');
+architecture behavioral of debounce is
+  constant ticks : integer := stable_ticks;
 
+  signal sync0  : std_logic := '0';
+  signal sync1  : std_logic := '0';
+  signal count  : integer range 0 to ticks := 0;
+  signal dbnc_r : std_logic := '0';
 begin
+  dbnc <= dbnc_r;
 
   process (clk)
   begin
-    if (rising_edge(clk)) then -- only on rising edge
-      shift_register(0) <= btn; -- store the current value of the button
-      shift_register(1) <= shift_register(0); -- store the previous value of the shift register
-      if shift_register(1) = '1' then -- if the previous value of the shift register was high
-        counter <= std_logic_vector(unsigned(counter) + 1); -- increment the counter
-        if unsigned(counter) = 2500000 then -- if the counter has reached 2500000; 20ms stable time
-          dbnc <= '1'; -- set the debounced signal high
+    if rising_edge(clk) then
+      sync0 <= btn;
+      sync1 <= sync0;
+
+      if sync1 = '1' then
+        if count < ticks then
+          count <= count + 1;
+        else
+          dbnc_r <= '1';
         end if;
-      else -- if the previous value of the shift register was low
-        counter <= (others => '0'); -- reset the counter
-        dbnc    <= '0'; -- set the debounced signal low
+      else
+        count  <= 0;
+        dbnc_r <= '0';
       end if;
     end if;
   end process;
-
-end Behavioral;
+end behavioral;

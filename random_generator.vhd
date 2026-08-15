@@ -1,9 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
 
--- random number generator
 entity random_generator is
   generic
   (
@@ -20,32 +17,35 @@ entity random_generator is
 end entity random_generator;
 
 architecture rtl of random_generator is
-
-  signal curr, ns : std_logic_vector(input_width - 1 downto 0) := x"01"; -- current and next state
-  signal fb       : std_logic; -- feedback bit; randomizes  
+  signal curr : std_logic_vector(input_width - 1 downto 0) := (0 => '1', others => '0');
+  signal fb   : std_logic;
 begin
+  -- x^8 + x^6 + x^5 + x^4 + 1 (width 8); XOR ends otherwise.
+  g_fb8 : if input_width = 8 generate
+    fb <= curr(7) xor curr(5) xor curr(4) xor curr(3);
+  end generate;
+  g_fb_other : if input_width /= 8 generate
+    fb <= curr(0) xor curr(input_width - 1);
+  end generate;
 
-  -- feedback logic
-  fb <= curr(0) xor curr(1) xor curr(2) xor curr(3); -- xor the first 4 bits
-
-  -- next state logic
-  ns <= fb & curr(input_width - 1 downto 1); -- shift left and add feedback
-
-  -- state transition logic
-  state_machine : process (clk, rst)
+  process (clk)
   begin
-    if rst = '1' then
-      curr <= seed; -- reset to seed
-    elsif rising_edge(clk) then
-      curr <= ns; -- update to ns state
+    if rising_edge(clk) then
+      if rst = '1' then
+        if seed = (seed'range => '0') then
+          curr <= (0 => '1', others => '0');
+        else
+          curr <= seed;
+        end if;
+      else
+        curr <= curr(input_width - 2 downto 0) & fb;
+      end if;
     end if;
-  end process state_machine;
+  end process;
 
-  -- output logic (output set values based on generated number)
-  rand_out <= "0001" when curr(input_width - 4) = '1' else
-    "0010" when curr(input_width - 3) = '1' else
-    "0100" when curr(input_width - 2) = '1' else
-    "1000" when curr(input_width - 1) = '1' else
-    "0001";
-
+  -- Two LFSR bits → one-hot color so each button is equally likely.
+  rand_out <= "0001" when curr(1 downto 0) = "00" else
+    "0010" when curr(1 downto 0) = "01" else
+    "0100" when curr(1 downto 0) = "10" else
+    "1000";
 end architecture;
