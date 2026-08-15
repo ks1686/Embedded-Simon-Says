@@ -1,0 +1,28 @@
+# Sim / nvc
+nvc_work/
+*.fst
+*.vcd
+*.ghw
+
+# Vivado
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.jou
+*.log
+*.str
+*.xpr
+*.xsa
+*.ltx
+*.mmi
+
+# Bitstreams (rebuild in Vivado)
+*.bit
+*.bin
+
+# OS / editor
+.DS_Store
+*.swp
+*~
