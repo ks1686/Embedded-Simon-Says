@@ -36,4 +36,4 @@ SIM=all bash scripts/sim.sh    # both
 
 That analyzes RTL + `Test/*_tb.vhd` and runs `debounce_tb`, `pulse_detector_tb`, `random_generator_tb`, `simon_game_tb`, and `top_level_tb`. The simulators disagree on some corners of the standard, so passing both is stronger evidence than either alone.
 
-The same commands run on every push and pull request via `.github/workflows/sim.yml`: an `nvc` job (nvc 1.22.1 via `nickg/setup-nvc`) plus a GHDL cross-check job (`ghdl/setup-ghdl-ci`).
+The same commands run on every push and pull request via `.github/workflows/sim.yml`: an `nvc` job (nvc 1.22.1 via `nickg/setup-nvc`) plus a GHDL cross-check job (GHDL v6.0.0, installed straight from the release tarball).

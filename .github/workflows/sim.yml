@@ -41,10 +41,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Setup GHDL
-        uses: ghdl/setup-ghdl-ci@366dfc27dbb98bc33c5d15ea102997b8c41e5198 # master
-        with:
-          ghdl_release: nightly
+      # Installed straight from the immutable v6.0.0 release; the mcode
+      # build locates its libraries relative to the binary, so extracting
+      # anywhere and adding bin/ to PATH is enough.
+      - name: Install GHDL
+        run: |
+          curl -sL -o /tmp/ghdl.tgz \
+            https://github.com/ghdl/ghdl/releases/download/v6.0.0/ghdl-mcode-6.0.0-ubuntu24.04-x86_64.tar.gz
+          mkdir -p "$RUNNER_TEMP/ghdl"
+          tar -xzf /tmp/ghdl.tgz -C "$RUNNER_TEMP/ghdl" --strip-components=1
+          echo "$RUNNER_TEMP/ghdl/bin" >> "$GITHUB_PATH"
 
       - name: Show GHDL version
         run: ghdl --version
