@@ -1,5 +1,6 @@
-# Sim / nvc
+# Sim / nvc + GHDL
 nvc_work/
+ghdl_work/
 *.fst
 *.vcd
 *.ghw
