@@ -26,12 +26,14 @@ Testbenches override these to tiny counts so a full win/lose path finishes in mi
 
 ## Simulate
 
-Needs [nvc](https://www.nickg.me.uk/nvc/) 1.16+ (`brew install nvc`):
+Needs [nvc](https://www.nickg.me.uk/nvc/) 1.16+ (`brew install nvc`) and, for the cross-check, [GHDL](https://github.com/ghdl/ghdl) (`brew install ghdl`):
 
 ```bash
-bash scripts/sim.sh
+bash scripts/sim.sh            # nvc (default)
+SIM=ghdl bash scripts/sim.sh   # GHDL cross-check
+SIM=all bash scripts/sim.sh    # both
 ```
 
-That analyzes RTL + `Test/*_tb.vhd` and runs `debounce_tb`, `pulse_detector_tb`, `random_generator_tb`, and `top_level_tb`.
+That analyzes RTL + `Test/*_tb.vhd` and runs `debounce_tb`, `pulse_detector_tb`, `random_generator_tb`, `simon_game_tb`, and `top_level_tb`. The simulators disagree on some corners of the standard, so passing both is stronger evidence than either alone.
 
-The same command runs on every push and pull request via `.github/workflows/sim.yml` (`nickg/setup-nvc` + nvc 1.22.1).
+The same commands run on every push and pull request via `.github/workflows/sim.yml`: an `nvc` job (nvc 1.22.1 via `nickg/setup-nvc`) plus a GHDL cross-check job (`ghdl/setup-ghdl-ci`).

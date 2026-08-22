@@ -32,3 +32,22 @@ jobs:
 
       - name: Run assertion testbenches
         run: bash scripts/sim.sh
+
+  ghdl:
+    name: ghdl cross-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup GHDL
+        uses: ghdl/setup-ghdl-ci@366dfc27dbb98bc33c5d15ea102997b8c41e5198 # master
+        with:
+          ghdl_release: nightly
+
+      - name: Show GHDL version
+        run: ghdl --version
+
+      - name: Run assertion testbenches
+        run: SIM=ghdl bash scripts/sim.sh
