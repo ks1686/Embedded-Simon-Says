@@ -136,9 +136,10 @@ begin
     if rising_edge(clk) then
       if rst = '1' then
         if seed_shift = '0' then
-          seed <= seed(6 downto 0) & seed(7);
           if seed(6 downto 0) & seed(7) = "00000000" then
             seed <= "00000001";
+          else
+            seed <= seed(6 downto 0) & seed(7);
           end if;
         end if;
         seed_shift    <= '1';
