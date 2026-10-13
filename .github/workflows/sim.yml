@@ -57,3 +57,9 @@ jobs:
 
       - name: Run assertion testbenches
         run: SIM=ghdl bash scripts/sim.sh
+
+      # Elaborate the full design with the board's default generics and run
+      # GHDL's synthesis front end, so CI catches non-synthesizable RTL that
+      # the small-generic testbenches would not exercise.
+      - name: Synthesis check (ghdl --synth)
+        run: bash scripts/synth-check.sh
