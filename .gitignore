@@ -4,6 +4,11 @@ ghdl_work/
 *.fst
 *.vcd
 *.ghw
+# GHDL elaboration objects and testbench executables
+e~*.o
+*.o
+*.cf
+/*_tb
 
 # Vivado
 *.cache/
@@ -18,12 +23,30 @@ ghdl_work/
 *.xsa
 *.ltx
 *.mmi
+*.gen/
+.Xil/
+vivado*.backup.jou
+vivado*.backup.log
+vivado_pid*.str
+vivado_pid*.zip
+webtalk*
+usage_statistics_webtalk.*
+*.dcp
+*.wdb
+*.pb
+xsim.dir/
+*.debug
 
 # Bitstreams (rebuild in Vivado)
 *.bit
 *.bin
 
-# OS / editor
+# OS / editor / agent tooling
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.cursor/
+.claude/
 *.swp
 *~
